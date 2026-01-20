@@ -1,0 +1,406 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2024 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+	1.按键设置：KEY0控制实现随机灯光
+							KEY2控制实现灯光秀（频闪+随机灯光）
+							KEY1、KEY_UP共同实现调节亮度，KEY1减小亮度，KEY_UP增加亮度
+	2.GPIO口设置：PA1：R    PWM输出（TIM2-CH2）
+								PA2：G    PWM输出（TIM2-CH3）
+								PA3：B    PWM输出（TIM2-CH4）
+								PA4：SCL
+								PA5：SDA
+	3.串口通信：使用UART，端口对应PA9，PA10
+							
+							AT指令接收与解析：AT+ON 控制亮灭
+																AT+BRIGHT=50 控制亮度（范围00-99）
+																AT+COLOR=R/G/B/W 控制颜色
+							串口调试助手中显示ADC转换值”Voltage=x.xxxV“
+							
+	4.ADC转换：启动AD后，通过查询方式获取值并转换成电压
+						 
+	5.电位器调节：调节电位器可以控制灯光亮度（逆时针变暗；顺时针变亮），并控制电压值
+	
+	6.OLED显示：第一行显示电压值”Voltage=x.xxxV“
+							二至四行显示三色灯相对亮度
+	 ******************************************************************************
+	
+  */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "adc.h"
+#include "i2c.h"
+#include "tim.h"
+#include "usart.h"
+#include "gpio.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include "stdlib.h"
+#include <stdio.h>
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+#include "oled.h"
+int16_t  pwm_val=500;
+int num=0;
+int scl=100;//串口和按键设置
+int scl2=100;//电位器设置
+int scl_final;//最终的亮度值
+int flag=0;//是否开始闪烁
+int uartRx_flag=0;
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+
+/* USER CODE BEGIN PV */
+uint8_t key=0;
+int random_number1;					//RGB随机值[0,999]
+int random_number2;
+int random_number3;
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+/* USER CODE BEGIN PFP */
+uint8_t	Compare_string(char *s);
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+	uint8_t KeyV=0;//get key
+	
+	uint8_t TxBuf[16];
+	uint8_t RxByte;
+	uint8_t RxBuf[32];
+	uint8_t RxCount=0;
+	uint8_t RxTimeOutCount=0;
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+
+  /* USER CODE BEGIN 1 */
+	uint16_t adc_value;//ADC采集值
+  uint8_t oled_buf[16];
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_TIM2_Init();
+  MX_USART1_UART_Init();
+  MX_ADC1_Init();
+  MX_I2C2_Init();
+  /* USER CODE BEGIN 2 */
+	HAL_UART_Receive_IT(&huart1,&RxByte,1);
+	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_4);//PWM值分别映射到对应通道
+	
+  Oled_Init();
+  OLED_Clear(0x00);//清屏准备
+ 
+
+
+	
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+		switch (KeyV)
+		{
+			case KEY0_PRES:
+			{
+				//srand((unsigned int)time(NULL)); 
+				 random_number1 = rand()%999;//random bright
+				 random_number2 = rand()%999;
+				 random_number3 = rand()%999;
+						break;
+			}
+			default:
+				HAL_Delay(10);
+		}
+		
+		flag=1;
+		KeyV = KEY_Scan(0);
+		if(!KEY2)
+			{
+				if(num>2){
+					flag=0;
+				 random_number1 = rand()%999;//赋予随机亮度
+				 random_number2 = rand()%999;
+				 random_number3 = rand()%999;
+				}	
+					
+      }
+		num++;if(num>4)num=0;//闪烁周期控制
+
+    if(WK_UP){//按键控制亮度增加
+      scl++;
+    }
+    if(!KEY1){//按键控制亮度减少
+      scl--;
+    }
+		
+    //开始ADC采集
+		HAL_ADC_Start(&hadc1);
+		HAL_ADC_PollForConversion(&hadc1,10);
+		adc_value= HAL_ADC_GetValue(&hadc1);
+		printf("Voltage=%.3fV\r\n",(float)adc_value*3.3/4096.0);
+    scl2=100*adc_value/4096;
+    sprintf(oled_buf,"Voltage=%.3fV",(float)adc_value*3.3/4096.0);
+    Oled_Display_String(0,0,oled_buf);
+		
+    if(scl>scl2){
+      scl_final=scl2;
+    }else{
+      scl_final=scl;
+    }//取串口设置和电位器设置的最小值
+
+    //SCL限幅
+		if(scl_final>=100)scl_final=100;
+		if(scl_final<=0)scl_final=0;
+    //执行PWM输出
+    if(flag){
+      __HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_2,(uint16_t)random_number1*scl_final/100);
+      __HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_3,(uint16_t)random_number2*scl_final/100);
+      __HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_4,(uint16_t)random_number3*scl_final/100);
+    }else{
+      __HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_2,0);
+      __HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_3,0);
+      __HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_4,0);
+    } 
+		
+		
+		if(uartRx_flag)//串口指令通信
+		{
+			uartRx_flag = 0;
+			RxCount =0;
+			if(Compare_string("AT+ON"))
+			{
+				//printf("Voltage=%4d\r\n",RxBuf[1]);
+				if(scl)scl = 0;
+				else scl = 100;
+			}
+	  		
+		  else if(Compare_string("AT+BRIGHT="))	//
+			{		
+				//printf("Voltage=%4d\r\n",RxBuf[10]);
+				scl = ((int)RxBuf[10]-48)*10+(int)RxBuf[11]-48;
+			}
+			else if(Compare_string("AT+COLOR="))
+			{
+				switch (RxBuf[9])
+				{
+					case 'R':
+					{
+						//printf("Voltage=%4d\r\n",RxBuf[1]);
+						random_number1 = 999;
+						random_number2 = 0;
+						random_number3 = 0;
+						break;
+					}
+					case 'G':
+					{
+						random_number1 = 0;
+						random_number2 = 999;
+						random_number3 = 0;
+						break;
+					}
+					case 'B':
+					{
+						random_number1 = 0;
+						random_number2 = 0;
+						random_number3 = 999;
+						break;
+					}
+					default:
+					{
+						random_number1 = 999;
+						random_number2 = 999;
+						random_number3 = 999;
+					}
+				}
+			}
+		//Tone(50);
+		for (int j = 0; j < 32; ++j)								//
+			{
+			receiveData[j] =0;
+			}
+		}
+		
+		
+		sprintf(oled_buf,"Red:  %6.2f%%",(float)random_number1*(float)scl_final/1000.0);
+    Oled_Display_String(2,0,oled_buf);
+		sprintf(oled_buf,"Green:%6.2f%%",(float)random_number2*(float)scl_final/1000.0);
+    Oled_Display_String(4,0,oled_buf);
+		sprintf(oled_buf,"Blue: %6.2f%%",(float)random_number3*(float)scl_final/1000.0);
+    Oled_Display_String(6,0,oled_buf);//屏幕显示RGB相对值
+	}
+  /* USER CODE END 3 */
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL2;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/* USER CODE BEGIN 4 */
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart ==&huart1)
+	{
+		uartRx_flag =1;
+		//printf("Voltage=%4d\r\n",receiveData[10]);
+		RxBuf[RxCount] =RxByte;
+		RxCount++;
+		RxTimeOutCount =5;
+/*
+		if (RxTimeOut_flag)
+			{
+			RxLen =RxCount;
+			}
+*/		
+		
+		HAL_UART_Receive_IT(&huart1,&RxByte,1);
+	}
+}
+uint8_t	Compare_string(char *s)										//字符串比较函数，相同返回1，不同返回0
+{
+	uint8_t	i=0;
+//	Equ_flag =1;
+	while (*s)
+	{
+		if (RxBuf[i++] != *s++)
+		{
+			//Equ_flag =0;
+			return 0;
+		}	
+	}
+	return 1;
+}	
+
+/* USER CODE END 4 */
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+
+#ifdef  USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */

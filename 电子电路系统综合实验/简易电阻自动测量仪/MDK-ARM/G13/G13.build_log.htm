@@ -1,0 +1,139 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: μVision V5.26.2.0
+Copyright (C) 2018 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: rzc  ,  , LIC=LN001-CLGQF-7LECY-IK506-28WH8-DBFF9
+ 
+Tool Versions:
+Toolchain:       *** Unknown Product ***  Version: 5.26.2.0
+Toolchain Path:  D:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 6 (build 750)
+Assembler:       Armasm.exe V5.06 update 6 (build 750)
+Linker/Locator:  ArmLink.exe V5.06 update 6 (build 750)
+Library Manager: ArmAr.exe V5.06 update 6 (build 750)
+Hex Converter:   FromElf.exe V5.06 update 6 (build 750)
+CPU DLL:         SARMCM3.DLL V5.26.2.0
+Dialog DLL:      DCM.DLL V1.17.2.0
+Target DLL:      CMSIS_AGDI.dll V1.30.6.0
+Dialog DLL:      TCM.DLL V1.36.1.0
+ 
+<h2>Project:</h2>
+D:\desktop\任之初\zju\大二下\电子电路系统综合实验\final\G13\MDK-ARM\G13.uvprojx
+Project File Date:  07/11/2024
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 6 (build 750)', folder: 'D:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'G13'
+compiling main.c...
+../Core/Inc/BSP_KEY.h(5): warning:  #1295-D: Deprecated declaration KEY_Scan - give arg types
+  uint8_t KEY_Scan();
+../Core/Inc/BSP_KEY.h(27): warning:  #1-D: last line of file ends without a newline
+  #endif
+../Core/Src/main.c(29): warning:  #1295-D: Deprecated declaration Task - give arg types
+  void Task();
+../Core/Src/main.c(32): warning:  #1295-D: Deprecated declaration average - give arg types
+  void average();
+../Core/Src/main.c(37): warning:  #1295-D: Deprecated declaration average2 - give arg types
+  double average2();
+../Core/Src/main.c(38): warning:  #1295-D: Deprecated declaration average3 - give arg types
+  double average3();
+../Core/Src/main.c(457): warning:  #167-D: argument of type "s8 *" is incompatible with parameter of type "uint8_t *"
+        Oled_Display_Num_with_Index(goal,index_goal,2,8*8);
+../Core/Src/main.c(458): warning:  #167-D: argument of type "s8 *" is incompatible with parameter of type "uint8_t *"
+        Oled_Display_Num_with_Index(error,index_error,4,8*8);
+../Core/Src/main.c(478): warning:  #167-D: argument of type "s8 *" is incompatible with parameter of type "uint8_t *"
+        Oled_Display_Num_with_Index(goal,index_goal,2,8*8);
+../Core/Src/main.c(479): warning:  #167-D: argument of type "s8 *" is incompatible with parameter of type "uint8_t *"
+        Oled_Display_Num_with_Index(error,index_error,4,8*8);
+../Core/Src/main.c(587): warning:  #223-D: function "sprintf" declared implicitly
+      sprintf(temp, "%d,%lf\r\n",(uint16_t)angle,R);
+../Core/Src/main.c(588): warning:  #223-D: function "strlen" declared implicitly
+      HAL_UART_Transmit(&huart1, (uint8_t*)temp, strlen(temp), 0xffff);
+../Core/Src/main.c(624): warning:  #223-D: function "sprintf" declared implicitly
+    sprintf(oled_buf, "R:%10.3lfR", Rd);
+../Core/Src/main.c(627): warning:  #223-D: function "sprintf" declared implicitly
+    sprintf(oled_buf, "R:%10.3lfK", Rd);
+../Core/Src/main.c(630): warning:  #223-D: function "sprintf" declared implicitly
+    sprintf(oled_buf, "R:%10.3lfM", Rd);
+../Core/Src/main.c(634): warning:  #223-D: function "sprintf" declared implicitly
+      sprintf(oled_buf, "R:              ");
+../Core/Src/main.c(638): warning:  #167-D: argument of type "u8 *" is incompatible with parameter of type "char *"
+    Oled_Display_String(2,0,oled_buf);
+../Core/Src/main.c(640): warning:  #223-D: function "sprintf" declared implicitly
+    sprintf(oled_buf, "ADC:%4d Shift:%d", adc_value,shift);
+../Core/Src/main.c(641): warning:  #167-D: argument of type "u8 *" is incompatible with parameter of type "char *"
+    Oled_Display_String(4,0,oled_buf);
+../Core/Src/main.c(708): warning:  #188-D: enumerated type mixed with another type
+  			 HAL_GPIO_WritePin(GPIOB, SW1_Pin, 0);
+../Core/Src/main.c(709): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW2_Pin, 1);
+../Core/Src/main.c(710): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW3_Pin, 1);
+../Core/Src/main.c(711): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW4_Pin, 1);
+../Core/Src/main.c(715): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW1_Pin, 1);
+../Core/Src/main.c(716): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW2_Pin, 0);
+../Core/Src/main.c(717): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW3_Pin, 1);
+../Core/Src/main.c(718): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW4_Pin, 1);
+../Core/Src/main.c(722): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW1_Pin, 1);
+../Core/Src/main.c(723): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW2_Pin, 1);
+../Core/Src/main.c(724): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW3_Pin, 0);   
+../Core/Src/main.c(725): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW4_Pin, 1);
+../Core/Src/main.c(729): warning:  #188-D: enumerated type mixed with another type
+          HAL_GPIO_WritePin(GPIOB, SW1_Pin, 1);
+../Core/Src/main.c(730): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW2_Pin, 1);
+../Core/Src/main.c(731): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW3_Pin, 1);
+../Core/Src/main.c(732): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW4_Pin, 0);
+../Core/Src/main.c(736): warning:  #188-D: enumerated type mixed with another type
+          HAL_GPIO_WritePin(GPIOB, SW1_Pin, 1);
+../Core/Src/main.c(737): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW2_Pin, 1);        
+../Core/Src/main.c(738): warning:  #188-D: enumerated type mixed with another type
+  				HAL_GPIO_WritePin(GPIOB, SW3_Pin, 1);  
+../Core/Src/main.c(739): warning:  #188-D: enumerated type mixed with another type
+          HAL_GPIO_WritePin(GPIOB, SW4_Pin, 1);
+../Core/Src/main.c: 39 warnings, 0 errors
+linking...
+Program Size: Code=13976 RO-data=1848 RW-data=104 ZI-data=1496  
+FromELF: creating hex file...
+"G13\G13.axf" - 0 Error(s), 39 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.5.4.0.pack
+                ARM.CMSIS.5.4.0
+                CMSIS (Cortex Microcontroller Software Interface Standard)
+   * Component: CORE Version: 5.1.2
+
+Package Vendor: Keil
+                https://www.keil.com/pack/Keil.STM32F1xx_DFP.2.4.1.pack
+                Keil.STM32F1xx_DFP.2.4.1
+                STMicroelectronics STM32F1 Series Device Support, Drivers and Examples
+
+<h2>Collection of Component include folders:</h2>
+  .\RTE\_G13
+  D:\Keil_v5\ARM\PACK\ARM\CMSIS\5.4.0\CMSIS\Core\Include
+  D:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.4.1\Device\Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE:5.1.2
+Build Time Elapsed:  00:00:01
+</pre>
+</body>
+</html>
